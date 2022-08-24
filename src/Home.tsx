@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Flex,
   Text,
@@ -10,29 +10,47 @@ import {
   PopoverContent,
   PopoverArrow,
   PopoverBody,
-  Textarea,
+  Box,
 } from '@chakra-ui/react';
 import { RepeatIcon } from '@chakra-ui/icons';
-
 import _ from 'lodash';
+import { faker } from '@faker-js/faker';
 
 export const Home = () => {
-  const randomWords = require('random-words');
-  const wordList = randomWords(50);
+  const [wordList, setWordList] = React.useState(() => faker.random.words(5).toLowerCase());
+  console.log('wordlist', wordList);
+  const [input, setInput] = React.useState<string[]>([]);
 
-  console.log({ wordList });
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Meta' && e.key !== 'Enter' && e.key !== 'Alt' && e.key !== 'Control') {
+        input.push(e.key);
+        console.log(input);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [input]);
+
+  const typedCharacters = input.join('');
+
   return (
     <Flex minH={'100%'} flexDir={'column'} bg={'#333437'}>
       <VStack minH={'100vh'} mx={'10%'} my={'5%'} spacing={20}>
         <Heading alignSelf={'flex-start'} color={'#d1d0c5'}>
           typeracer
         </Heading>
-        <Text fontSize={'3xl'} color={'#636669'}>
-          {_.map(wordList, (word) => {
-            return word + ' ';
-          })}
-        </Text>
-        <Textarea bg="teal"></Textarea>
+        <Box position="relative">
+          <Text fontSize={'3xl'} color={'#636669'}>
+            {wordList}
+          </Text>
+          <Text fontSize={'3xl'} color={'white'} position="absolute" top={0}>
+            {typedCharacters}
+          </Text>
+        </Box>
         <Popover trigger="hover">
           <PopoverTrigger>
             <IconButton
