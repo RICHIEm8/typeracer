@@ -17,15 +17,39 @@ import _ from 'lodash';
 import { faker } from '@faker-js/faker';
 
 export const Home = () => {
-  const [wordList, setWordList] = React.useState(() => faker.random.words(5).toLowerCase());
-  console.log('wordlist', wordList);
-  const [input, setInput] = React.useState<string[]>([]);
+  const [wordList, setWordList] = React.useState<{ value: string; index: number }[]>(() => {
+    const words: string[] = faker.random.words(5).toLowerCase().split('');
+
+    const chars = _.map(words, (value, index) => ({ value, index }));
+
+    return chars;
+  });
+  const [input, setInput] = React.useState<{ value: string; index: number }[]>([
+    { value: '', index: 0 },
+  ]);
+
+  const words = _.map(wordList, (word) => {
+    return word.value;
+  });
+  const typedCharacters = _.map(input, (value) => {
+    return value.value;
+  });
 
   useEffect(() => {
+    const charIndex = _.findLastIndex(input);
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Meta' && e.key !== 'Enter' && e.key !== 'Alt' && e.key !== 'Control') {
-        input.push(e.key);
-        console.log(input);
+      if (e.key === 'Backspace') {
+        setInput(_.dropRight(input));
+      } else if (
+        e.key !== 'Meta' &&
+        e.key !== 'Enter' &&
+        e.key !== 'Alt' &&
+        e.key !== 'Control' &&
+        e.key !== 'CapsLock' &&
+        e.key !== 'Shift'
+      ) {
+        setInput([...input, { value: e.key, index: charIndex }]);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -35,23 +59,21 @@ export const Home = () => {
     };
   }, [input]);
 
-  const typedCharacters = input.join('');
-
   return (
-    <Flex minH={'100%'} flexDir={'column'} bg={'#333437'}>
-      <VStack minH={'100vh'} mx={'10%'} my={'5%'} spacing={20}>
+    <Flex flexDir={'column'} bg={'#333437'}>
+      <VStack h={'81vh'} mx={'10%'} my={'5%'} spacing={20}>
         <Heading alignSelf={'flex-start'} color={'#d1d0c5'}>
           typeracer
         </Heading>
-        <Box position="relative">
+        <Box position={'relative'} wordBreak={'break-all'}>
           <Text fontSize={'3xl'} color={'#636669'}>
-            {wordList}
+            {words}
           </Text>
-          <Text fontSize={'3xl'} color={'white'} position="absolute" top={0}>
+          <Text fontSize={'3xl'} color={'white'} position={'absolute'} top={0} animation={'typing'}>
             {typedCharacters}
           </Text>
         </Box>
-        <Popover trigger="hover">
+        <Popover trigger={'hover'}>
           <PopoverTrigger>
             <IconButton
               aria-label="Reset"
