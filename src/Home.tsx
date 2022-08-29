@@ -11,36 +11,45 @@ import {
   PopoverArrow,
   PopoverBody,
   Box,
+  HStack,
 } from '@chakra-ui/react';
 import { RepeatIcon } from '@chakra-ui/icons';
-import _ from 'lodash';
+import _, { words } from 'lodash';
 import { faker } from '@faker-js/faker';
 
+interface Props {
+  actual: string;
+  expected: string;
+}
+
+const Character = (props: Props) => {
+  const { actual, expected } = props;
+  const isValid = actual === expected;
+  const isWhiteSpace = actual === ' ';
+
+  return (
+    <Text
+      fontSize={'3xl'}
+      color={!isValid && !isWhiteSpace ? 'red' : 'white'}
+      bg={!isValid && isWhiteSpace ? 'red' : 'transparent'}
+      display={'inline'}
+    >
+      {expected}
+    </Text>
+  );
+};
+
 export const Home = () => {
-  const [wordList, setWordList] = React.useState<{ value: string; index: number }[]>(() => {
-    const words: string[] = faker.random.words(5).toLowerCase().split('');
-
-    const chars = _.map(words, (value, index) => ({ value, index }));
-
-    return chars;
+  const [wordList, setWordList] = React.useState<string>(() => {
+    return faker.random.words(20).toLowerCase();
   });
-  const [input, setInput] = React.useState<{ value: string; index: number }[]>([
-    { value: '', index: 0 },
-  ]);
 
-  const words = _.map(wordList, (word) => {
-    return word.value;
-  });
-  const typedCharacters = _.map(input, (value) => {
-    return value.value;
-  });
+  const [input, setInput] = React.useState<string>('');
 
   useEffect(() => {
-    const charIndex = _.findLastIndex(input);
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Backspace') {
-        setInput(_.dropRight(input));
+        setInput(input.slice(0, -1));
       } else if (
         e.key !== 'Meta' &&
         e.key !== 'Enter' &&
@@ -49,7 +58,8 @@ export const Home = () => {
         e.key !== 'CapsLock' &&
         e.key !== 'Shift'
       ) {
-        setInput([...input, { value: e.key, index: charIndex }]);
+        setInput((prevInput) => prevInput.concat(e.key));
+        console.log(input);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
@@ -59,19 +69,23 @@ export const Home = () => {
     };
   }, [input]);
 
+  const typedCharacters = input.split('').map((char, index) => {
+    return <Character key={index} actual={char} expected={wordList[index]} />;
+  });
+
   return (
     <Flex flexDir={'column'} bg={'#333437'}>
       <VStack h={'81vh'} mx={'10%'} my={'5%'} spacing={20}>
         <Heading alignSelf={'flex-start'} color={'#d1d0c5'}>
           typeracer
         </Heading>
-        <Box position={'relative'} wordBreak={'break-all'}>
+        <Box position={'relative'} wordBreak={'break-all'} w={'2xl'}>
           <Text fontSize={'3xl'} color={'#636669'}>
-            {words}
+            {wordList}
           </Text>
-          <Text fontSize={'3xl'} color={'white'} position={'absolute'} top={0} animation={'typing'}>
+          <Box position={'absolute'} inset={0}>
             {typedCharacters}
-          </Text>
+          </Box>
         </Box>
         <Popover trigger={'hover'}>
           <PopoverTrigger>
